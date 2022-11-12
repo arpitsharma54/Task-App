@@ -1,0 +1,58 @@
+import 'package:challenge_01/repo/models/tasks.dart';
+import 'package:challenge_01/repo/repositry.dart';
+import 'package:challenge_01/store/app.state.dart';
+import 'package:challenge_01/store/task/task.actions.dart';
+import 'package:dio/dio.dart';
+import 'package:flutter_easyloading/flutter_easyloading.dart';
+
+import 'task.state.dart';
+import 'package:redux/redux.dart';
+
+Middleware<AppState> fetchTasks(Repositry repo) {
+  return (Store<AppState> store, action, NextDispatcher dispatch) async {
+    dispatch(action);
+
+    try {
+      print("INSIDE FETCH TASKS");
+      final res = await repo.fetchTasks();
+      List<Tasks> taskList = [];
+      if (res != null) {
+        taskList = res;
+      }
+      EasyLoading.dismiss();
+      dispatch(FetchTaskSuccesAction(newTaskList: taskList));
+    } on DioError catch (error) {
+      dispatch(FetchTaskFailedAction(error: error.message.toString()));
+      throw error;
+    }
+  };
+}
+
+Middleware<AppState> addTask(Repositry repo) {
+  return (Store<AppState> store, action, NextDispatcher dispatch) async {
+    dispatch(action);
+    try {
+      AddTaskAction ac = action as AddTaskAction;
+      await repo.addNewTask({"taskTitle": ac.taskTitle});
+      store.dispatch(FetchTaskAction());
+    } on DioError catch (error) {
+      throw error;
+    }
+  };
+}
+
+Middleware<AppState> deleteTask(Repositry repo) {
+  return (Store<AppState> store, action, NextDispatcher dispatch) async {
+    dispatch(action);
+    try {
+      DeleteTaskAction ac = action as DeleteTaskAction;
+      await repo.deleteTask(ac.id);
+      final oldTaskList = store.state.taskState.tasks;
+      oldTaskList.removeWhere((element) => element.id == ac.id);
+      store.dispatch(DeleteTaskSuccessAction(newList: oldTaskList));
+    } on DioError catch (error) {
+      store.dispatch(DeleteTaskFailedAction(error: error.message.toString()));
+      throw error;
+    }
+  };
+}
