@@ -69,7 +69,7 @@ class _TaskListState extends State<TaskList>
             ),
           ),
           const SizedBox(
-            width: 10,
+            width: 1,
           ),
           Expanded(
             flex: 6,
