@@ -19,11 +19,13 @@ Middleware<AppState> fetchTasks(Repositry repo) {
       if (res != null) {
         taskList = res;
       }
-      EasyLoading.dismiss();
-      dispatch(FetchTaskSuccesAction(newTaskList: taskList));
+      store.dispatch(FetchTaskSuccesAction(newTaskList: taskList));
     } on DioError catch (error) {
       dispatch(FetchTaskFailedAction(error: error.message.toString()));
       throw error;
+    } catch (error) {
+      print(error);
+      dispatch(FetchTaskFailedAction(error: error.toString()));
     }
   };
 }
@@ -47,9 +49,7 @@ Middleware<AppState> deleteTask(Repositry repo) {
     try {
       DeleteTaskAction ac = action as DeleteTaskAction;
       await repo.deleteTask(ac.id);
-      final oldTaskList = store.state.taskState.tasks;
-      oldTaskList.removeWhere((element) => element.id == ac.id);
-      store.dispatch(DeleteTaskSuccessAction(newList: oldTaskList));
+      store.dispatch(FetchTaskAction());
     } on DioError catch (error) {
       store.dispatch(DeleteTaskFailedAction(error: error.message.toString()));
       throw error;
