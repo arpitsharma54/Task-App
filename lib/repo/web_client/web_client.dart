@@ -14,6 +14,7 @@ class WebClient {
   }
 
   Future fetchTask() async {
+    print(_dio.options.baseUrl + ApiUrl.fetchTasks);
     final response = await _dio.get(ApiUrl.fetchTasks);
 
     if (response.data == null) {
